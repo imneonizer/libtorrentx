@@ -1,0 +1,4 @@
+**/__pycache__/
+libtorrentx.egg*
+dist/
+build/
