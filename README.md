@@ -17,23 +17,21 @@ pip install libtorrentx
 import libtorrentx
 import time
 
-magnet = "magnet:?xt=urn:btih:1C0AD4A6A8CF5E26B6E57C3129CFAE9F42807037"
+magnet = "magnet:?xt=urn:btih:4C9B41D664D7B6B23F0BF39AE185858CBADDA3FF"
 output_dir = "./downloads"
 client = libtorrentx.TorrentClient()
-torrent = client.add_torrent(magnet, output_dir)
+torrent = client.add_magnet(magnet, output_dir)
 
 if torrent:
     while True:
-        status, props = torrent.read()
+        status, props = torrent.read(sleep=1)
         if not status: continue
         print(f"{props.name}, {(props.download_speed+1) / 1e+6:.2f} MB/s, {props.progress}%")
         if props.is_finished: break
-        time.sleep(1)
 
-client.close()
 ````
 
-or use CLI `python -m libtorrentx -m magnet:?xt=urn:btih:1C0AD4A6A8CF5E26B6E57C3129CFAE9F42807037`
+or use CLI `python -m libtorrentx -m magnet:?xt=urn:btih:4C9B41D664D7B6B23F0BF39AE185858CBADDA3FF`
 
 **Output**
 
@@ -53,6 +51,6 @@ docker build . -t libtorrentx
 ```
 
 ````sh
-docker run --rm -it -v $(pwd)/downloads:/app/downloads libtorrentx -m magnet:?xt=urn:btih:1C0AD4A6A8CF5E26B6E57C3129CFAE9F42807037
+docker run --rm -it -v $(pwd)/downloads:/app/downloads libtorrentx -m magnet:?xt=urn:btih:4C9B41D664D7B6B23F0BF39AE185858CBADDA3FF
 ````
 

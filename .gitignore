@@ -2,3 +2,4 @@
 libtorrentx.egg*
 dist/
 build/
+downloads/
