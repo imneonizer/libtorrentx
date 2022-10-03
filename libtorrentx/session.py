@@ -18,6 +18,12 @@ class SessionUtils:
         elif isinstance(handle, lt.torrent_handle):
             self.session.remove_torrent(handle)
             return True
+    
+    def start(self, info_hash, save_path):
+        return self.add_magnet_uri(
+                f"magnet:?xt=urn:btih:{info_hash}",
+                save_path
+            )
 
 
 class LibTorrentSession(SessionUtils):

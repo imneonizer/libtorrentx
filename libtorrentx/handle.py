@@ -48,12 +48,9 @@ class TorrentHandleWrapper:
         logger.info("torrent removed")
         self.session.stop(self.info_hash)
     
-    def resume(self):
+    def start(self):
         logger.info("torrent added")
-        self.handle = self.session.add_magnet_uri(
-            f"magnet:?xt=urn:btih:{self.info_hash}",
-            self.save_path
-        )
+        self.handle = self.session.start(self.info_hash, self.save_path)
 
     def __repr__(self):
         return f"<{self.__class__.__name__} info_hash={self.info_hash}>"
