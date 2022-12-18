@@ -14,20 +14,20 @@ pip install libtorrentx
 **Simple demo app**
 
 ````python
-import libtorrentx
+from libtorrentx import LibTorrentSession
 import time
 
 magnet = "magnet:?xt=urn:btih:4C9B41D664D7B6B23F0BF39AE185858CBADDA3FF"
 output_dir = "./downloads"
-client = libtorrentx.TorrentClient()
-torrent = client.add_magnet(magnet, output_dir)
+session = LibTorrentSession()
+handle = session.add_magnet(magnet, output_dir)
 
-if torrent:
+if handle:
     while True:
-        status, props = torrent.read(sleep=1)
+        status, props = handle.read(sleep=1)
         if not status: continue
-        print(f"{props.name}, {(props.download_speed+1) / 1e+6:.2f} MB/s, {props.progress}%")
-        if props.is_finished: break
+        print(f"{props['name']}, {props['download_speed_human']}, {props['progress']}%")
+        if props['is_finished']: break
 
 ````
 

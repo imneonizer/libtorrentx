@@ -1,1 +1,1 @@
-from .client import TorrentClient
+from .session import LibTorrentSession
