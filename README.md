@@ -20,7 +20,7 @@ import time
 magnet = "magnet:?xt=urn:btih:4C9B41D664D7B6B23F0BF39AE185858CBADDA3FF"
 output_dir = "./downloads"
 session = LibTorrentSession()
-handle = session.add_magnet(magnet, output_dir)
+handle = session.add_magnet_uri(magnet, output_dir)
 
 if handle:
     while True:
