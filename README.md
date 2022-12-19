@@ -24,10 +24,15 @@ handle = session.add_magnet_uri(magnet, output_dir)
 
 if handle:
     while True:
-        status, props = handle.read(sleep=1)
-        if not status: continue
+        status, props = handle.read()
+        if not status:
+            time.sleep(1)
+            continue
+
         print(f"{props['name']}, {props['download_speed_human']}, {props['progress']}%")
         if props['is_finished']: break
+
+        time.sleep(1)
 
 ````
 

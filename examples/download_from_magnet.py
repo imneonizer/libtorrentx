@@ -1,5 +1,6 @@
 # python -m libtorrentx -m magnet:?xt=urn:btih:4C9B41D664D7B6B23F0BF39AE185858CBADDA3FF
 
+import modulepath
 from libtorrentx import LibTorrentSession
 import argparse
 import time

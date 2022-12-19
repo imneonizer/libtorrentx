@@ -4,10 +4,11 @@ import traceback
 
 
 class TorrentHandleWrapper:
-    def __init__(self, session, handle, callback=None):
+    def __init__(self, session, handle, callback=None, callback_interval=1):
         self.session = session
         self.handle = handle
         self.callback = callback
+        self.callback_interval = callback_interval
         self.info_hash = str(self.handle.status().info_hash)
         self.save_path = self.handle.status().save_path
         self.start_callback()
@@ -24,8 +25,9 @@ class TorrentHandleWrapper:
     def handle_callback(self):
         """Handle callback, this can be used to update to db in the background"""
         while True:
-            status, props = self.read(sleep=1)
+            status, props = self.read()
             if not status:
+                time.sleep(1)
                 continue
 
             try:
@@ -35,6 +37,8 @@ class TorrentHandleWrapper:
 
             if props.is_finished or self.stop_callback:
                 break
+
+            time.sleep(self.callback_interval)
 
     def __human_speed(self, speed):
         """Convert speed to human readable format
@@ -88,18 +92,12 @@ class TorrentHandleWrapper:
             save_path=s.save_path,
         )
 
-    def read(self, sleep=0):
+    def read(self):
         """Read torrent properties
-
-        Args:
-            sleep (int, optional): sleep time. Defaults to 0.
 
         Returns:
             tuple: (status, props)
         """
-
-        if sleep:
-            time.sleep(sleep)
 
         props = self.props()
         status = props.get("name", "Unknown") != "Unknown"
