@@ -40,24 +40,24 @@ class TorrentHandleWrapper:
 
             time.sleep(self.callback_interval)
 
-    def __human_speed(self, speed):
-        """Convert speed to human readable format
+    def format_bytes(self, data):
+        """Convert byte to human readable format
 
         Args:
-            speed (int): speed in bytes
+            data (int): data in bytes
 
         Returns:
-            str: human readable speed
+            str: human readable data
         """
 
-        if speed > 1024**3:
-            return f"{round(speed / 1024 ** 3, 2)} GB/s"
-        elif speed > 1024**2:
-            return f"{round(speed / 1024 ** 2, 2)} MB/s"
-        elif speed > 1024:
-            return f"{round(speed / 1024, 2)} KB/s"
+        if data > 1024**3:
+            return f"{round(data / 1024 ** 3, 2)} GB"
+        elif data > 1024**2:
+            return f"{round(data / 1024 ** 2, 2)} MB"
+        elif data > 1024:
+            return f"{round(data / 1024, 2)} KB"
         else:
-            return f"{round(speed, 2)} B/s"
+            return f"{round(data, 2)} B"
 
     def props(self):
         """Get torrent properties
@@ -77,7 +77,6 @@ class TorrentHandleWrapper:
             info_hash=self.info_hash,
             name=name,
             download_speed=s.download_rate + 1,
-            download_speed_human=self.__human_speed(s.download_rate),
             downloaded_bytes=s.total_wanted_done,
             is_finished=self.handle.is_finished(),
             is_paused=s.paused,

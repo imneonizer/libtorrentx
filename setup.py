@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="libtorrentx",
-    version="0.0.5",
+    version="0.0.6",
     description="libtorrent python api",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -17,7 +17,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        "libtorrent>=2.0.6",
+        "libtorrent>=2.0.7",
     ],
     platforms=["linux", "unix"],
     python_requires=">3.5.2",

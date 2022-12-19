@@ -7,7 +7,8 @@ import time
 
 def main(args):
     session = LibTorrentSession()
-    handle = session.add_magnet_uri(
+
+    handle = session.add_torrent(
         args.magnet,
         args.output,
         sequential=args.sequential,
@@ -19,7 +20,16 @@ def main(args):
             time.sleep(1)
             continue
 
-        print(f"{props['name']}, {props['download_speed_human']}, {props['progress']}%")
+        name = props["name"]
+        downloaded_bytes = handle.format_bytes(props["downloaded_bytes"])
+        total_bytes = handle.format_bytes(props["total_bytes"])
+        download_speed = handle.format_bytes(props["download_speed"])
+        progress = props["progress"]
+        num_seeds = props["num_seeds"]
+
+        print(
+            f"{name} - {downloaded_bytes}/{total_bytes} - {download_speed}/s - {num_seeds} Seeds - {progress}%"
+        )
 
         if props["is_finished"]:
             break
@@ -29,10 +39,12 @@ def main(args):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("-m", "--magnet", help="torrent magnet link", required=True)
+    ap.add_argument(
+        "-m", "--magnet", help="torrent file path or magnet link", required=True
+    )
     ap.add_argument("-o", "--output", help="download path", default="./downloads")
     ap.add_argument(
-        "-s", "--sequential", help="download sequentially", type=bool, default=False
+        "-s", "--sequential", help="download sequentially", action="store_true"
     )
     args = ap.parse_args()
 
