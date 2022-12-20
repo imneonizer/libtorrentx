@@ -20,7 +20,7 @@ def main(args):
             time.sleep(1)
             continue
 
-        print(props.string, handle.format_bytes(props.upload_speed))
+        print(props.string)
 
         if props.is_finished:
             break
