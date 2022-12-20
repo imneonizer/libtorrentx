@@ -1,8 +1,13 @@
 # python -m libtorrentx -m magnet:?xt=urn:btih:4C9B41D664D7B6B23F0BF39AE185858CBADDA3FF
 
+import modulepath
 from libtorrentx import LibTorrentSession
 import argparse
-import time
+
+
+def callback(props, prefix=""):
+    # do something with props
+    print(prefix + props.string)
 
 
 def main(args):
@@ -10,20 +15,10 @@ def main(args):
 
     handle = session.add_torrent(args.magnet, args.output)
 
-    while True:
-        props = handle.props()
+    handle.set_callback(callback, callback_interval=0.3)
 
-        if not props.ok:
-            print("waiting for torrent to start...")
-            time.sleep(1)
-            continue
-
-        print(props.string)
-
-        if props.is_finished:
-            break
-
-        time.sleep(1)
+    # use lambda to pass arguments to callback
+    # handle.set_callback(lambda props: callback(props, prefix=">> "))
 
 
 if __name__ == "__main__":

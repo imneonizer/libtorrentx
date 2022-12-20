@@ -14,7 +14,6 @@ class LibTorrentSession(MagnetUtils):
         settings.update(
             {
                 "alert_mask": lt.alert.category_t.all_categories,
-                "upload_rate_limit": 0,
                 "connections_limit": 500,
                 "enable_outgoing_utp": False,
                 "enable_incoming_utp": False,
@@ -24,6 +23,8 @@ class LibTorrentSession(MagnetUtils):
         self.session.apply_settings(settings) if hasattr(
             self.session, "apply_settings"
         ) else self.session.set_settings(settings)
+
+        self.handles = {}
 
     def _get_torrent_handle(self, info_hash):
         """Get torrent_handle from info_hash
@@ -70,13 +71,13 @@ class LibTorrentSession(MagnetUtils):
             return info_hash
 
         elif isinstance(magnet, lt.torrent_handle):
-            return str(magnet.status().info_hash)
+            return str(magnet.status().info_hash).lower()
 
     def _stop(self, handle):
         """Stop torrent
 
         Args:
-            handle (str or lt.torrent_handle): magnet link or torrent_handle
+            handle (str or lt.torrent_handle): info hash or torrent_handle
 
         Returns:
             bool: True if stopped
@@ -84,18 +85,54 @@ class LibTorrentSession(MagnetUtils):
 
         if isinstance(handle, str) and self._exist(handle):
             self.session.remove_torrent(self._get_torrent_handle(handle))
+            del self.handles[handle]
             return True
         elif isinstance(handle, lt.torrent_handle):
+            info_hash = self._get_info_hash(handle)
             self.session.remove_torrent(handle)
+            del self.handles[info_hash]
             return True
 
-    def add_torrent(self, magnet, save_path, sequential=False, callback=None):
+    def _restart(self, magnet, save_dir, sequential=False):
+        """Add torrent to libtorrent session again
+
+        Args:
+            magnet (str): magnet link
+            save_dir (str): download path
+            sequential (bool, optional): download sequentially. Defaults to False.
+
+        Returns:
+            lt.torrent_handle: torrent_handle
+        """
+
+        info_hash = self._get_info_hash(magnet)
+        if os.path.basename(save_dir) != info_hash:
+            save_dir = os.path.realpath(os.path.join(save_dir, info_hash))
+        os.makedirs(save_dir, exist_ok=True)
+
+        handle = lt.add_magnet_uri(self.session, magnet, {"save_path": save_dir})
+        handle.set_sequential_download(sequential)
+
+        return handle
+
+    def add_torrent(
+        self,
+        magnet,
+        save_dir,
+        sequential=False,
+        callback=None,
+        callback_interval=1,
+        download_speed=0,
+    ):
         """Add magnet link or torrent file to libtorrent session
 
         Args:
             magnet (str): magnet link or torrent file
-            save_path (str): download path
+            save_dir (str): download path
             sequential (bool, optional): download sequentially. Defaults to False.
+            callback (function, optional): callback function. Defaults to None.
+            callback_interval (int, optional): callback interval. Defaults to 1.
+            limit_download_speed (int, optional): limit download speed. Defaults to 0.
 
         Returns:
             TorrentHandleWrapper: TorrentHandleWrapper
@@ -105,20 +142,33 @@ class LibTorrentSession(MagnetUtils):
             if not os.path.exists(magnet):
                 raise FileNotFoundError(f"{magnet} not found")
             magnet = self._get_magnet_from_torrent_file(magnet)
-        else:
-            magnet = self._clean_magnet_uri(magnet)
 
+        magnet = self._clean_magnet_uri(magnet)
         info_hash = self._get_info_hash(magnet)
-        if self._exist(info_hash):
-            return TorrentHandleWrapper(
-                self, self._get_torrent_handle(magnet), callback
-            )
 
-        if os.path.basename(save_path) != info_hash:
-            save_path = os.path.realpath(os.path.join(save_path, info_hash))
-        os.makedirs(save_path, exist_ok=True)
+        if info_hash in self.handles and self._exist(info_hash):
+            return self.handles[info_hash]
 
-        handle = lt.add_magnet_uri(self.session, magnet, {"save_path": save_path})
-        handle.set_sequential_download(sequential)
+        if os.path.basename(save_dir) != info_hash:
+            save_dir = os.path.realpath(os.path.join(save_dir, info_hash))
+        os.makedirs(save_dir, exist_ok=True)
 
-        return TorrentHandleWrapper(self, handle, callback)
+        handle = lt.add_magnet_uri(self.session, magnet, {"save_path": save_dir})
+
+        if sequential:
+            handle.set_sequential_download(sequential)
+
+        if download_speed:
+            handle.set_download_limit(download_speed)  # B/s
+
+        self.handles[info_hash] = TorrentHandleWrapper(
+            session=self,
+            handle=handle,
+            magnet=magnet,
+            save_dir=save_dir,
+            sequential=sequential,
+            callback=callback,
+            callback_interval=callback_interval,
+        )
+
+        return self.handles[info_hash]

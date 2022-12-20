@@ -22,17 +22,20 @@ output_dir = "./downloads"
 session = LibTorrentSession()
 handle = session.add_torrent(magnet, output_dir)
 
-if handle:
-    while True:
-        status, props = handle.read()
-        if not status:
-            time.sleep(1)
-            continue
+while True:
+    props = handle.props()
 
-        print(f"{props['name']}, {props['download_speed_human']}, {props['progress']}%")
-        if props['is_finished']: break
-
+    if not props.ok:
+        print("waiting for torrent to start...")
         time.sleep(1)
+        continue
+
+    print(props.string)
+
+    if props.is_finished:
+        break
+
+    time.sleep(1)
 
 ````
 

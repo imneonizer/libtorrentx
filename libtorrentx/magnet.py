@@ -30,7 +30,7 @@ class MagnetUtils:
         # Check that the info hash is a base32-encoded string of 40 characters
         info_hash = query_dict["xt"][0][9:]
         if len(info_hash) != 40 or any(
-            c not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" for c in info_hash
+            c not in "0123456789abcdefghijklmnopqrstuvwxyz" for c in info_hash
         ):
             return False
 
@@ -64,6 +64,7 @@ class MagnetUtils:
         Returns:
             str: cleaned magnet uri
         """
+        magnet = magnet.strip().lower()
 
         if ("magnet:?xt=urn:btih:" in magnet) and (
             not magnet.startswith("magnet:?xt=urn:btih:")
